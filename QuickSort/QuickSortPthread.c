@@ -110,9 +110,9 @@ void swap(int* v, int a, int b) {
 
 void print() {
     int i;
-    printf("\n----------------OUR INTEGER ARRAY----------------\n");
+    printf("\n----------------OUR INTEGER ARRAY----------------\n\n");
     for (i = 0; i < NO_OF_ITEMS; i++) {
-        printf("%d\n", integer_array[i]);
+        printf("%d\t", integer_array[i]);
     }
     printf("\n\n----------------INTEGER ARRAY PRINTED----------------\n");
 }
