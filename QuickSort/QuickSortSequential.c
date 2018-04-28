@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define NO_OF_ITEMS 1000
+#define NO_OF_ITEMS 100000000
 static int *integer_array;
 
 void swap(int*, int, int); //function to swap two integer values
@@ -15,13 +15,13 @@ int main(){
     int i = 0;clock_t t;
     initializeIntegerArray();
     printf("\n\n------Before Sorting------\n\n");
-    print();
+    //print();
     t = clock();
     quick_sort(integer_array, 0, NO_OF_ITEMS-1);
     t = clock() - t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
     printf("\n\n------After  Sorting------\n\n");
-    print();
+    //print();
     printf("Quick Sort Sequential took %f seconds to sort the integer array. \n", time_taken);
     free(integer_array);
 }

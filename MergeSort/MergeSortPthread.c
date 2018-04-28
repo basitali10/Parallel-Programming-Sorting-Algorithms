@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <time.h>
+#include<math.h>
 #define NO_OF_ITEMS 1000
 #define MAX_THREADS 8
 #define SIZE_OF_CHUNK (NO_OF_ITEMS/MAX_THREADS)
@@ -22,6 +23,8 @@ typedef struct  {
 void swap(int*, int, int); //function to swap two integer values
 void print();              //function to print our global array.
 void initializeIntegerArray(); //function to initialize array dynamically with random numbers.
+int adjustNoOfThreads(int);
+int getPowerOfTwo(int);
 void merge_sort(int,int);
 void merge(int, int, int);
 void * threadFunctionToSort(void *); //thread function to just sort a chunk defined by chunk's boundary.
@@ -30,18 +33,21 @@ void * mergingOfResultsOfAllThreads(void *); //thread function to merge two chun
 
 //MAIN FUNCTION
 int main(){
-    int j=0,i=0,purani=0;
+    int j=0,i=0,k=0,purani=0,special_size_of_chunk=0;
+    int powerOf2=getPowerOfTwo(MAX_THREADS);
     initializeIntegerArray();
     printf("\n\n------Before Sorting------\n\n");
-    print();
+    //print();
     clock_t t;
     t = clock();
     //Sorting chunks seperately
     for(i=0; i < MAX_THREADS; i++) {
         Bounds * obj_of_Bounds = malloc(sizeof(* obj_of_Bounds));
-        if(i==7){
+        if(i==(MAX_THREADS-1)){
             obj_of_Bounds->start = purani;
             obj_of_Bounds->end = NO_OF_ITEMS;
+            special_size_of_chunk=NO_OF_ITEMS-purani;
+            printf("\nSpecial size of chunk for last thread = %d\n",special_size_of_chunk);
 
         }
         else{
@@ -57,47 +63,36 @@ int main(){
         pthread_join(tid[i], NULL);
     }
     // Merging chunks two by two
+    int var1=1,var2,var3=0,var4=0,var5=0,incrementer=0;
+    for(i=0;i<powerOf2;i++){
+        var2=pow(2,var1);
+        var3=0;
+        var4=pow(2,i);
+        var5=pow(2,i);
+        incrementer=pow(2,(i+1));
+        for(j=0; j < MAX_THREADS/var2; j++) {
+                MergeBoundaries * obj_of_MergeBoundaries = malloc(sizeof(* obj_of_MergeBoundaries));
+                obj_of_MergeBoundaries->left_bound = SIZE_OF_CHUNK * var3; var3+=incrementer;
+                obj_of_MergeBoundaries->right_bound = SIZE_OF_CHUNK* var4; var4+=incrementer;
+                obj_of_MergeBoundaries->size_of_chunk = SIZE_OF_CHUNK * var5;
+                pthread_create(&tid[j], 0, mergingOfResultsOfAllThreads, obj_of_MergeBoundaries);
 
-    int var1=0,var2=1;
-    for(i=0; i < MAX_THREADS/2; i++) {
-            MergeBoundaries * obj_of_MergeBoundaries = malloc(sizeof(* obj_of_MergeBoundaries));
-            obj_of_MergeBoundaries->left_bound = SIZE_OF_CHUNK * var1; var1+=2;
-            obj_of_MergeBoundaries->right_bound = SIZE_OF_CHUNK* var2; var2+=2;
-            obj_of_MergeBoundaries->size_of_chunk = SIZE_OF_CHUNK;
-            pthread_create(&tid[i], 0, threadFunctionToMerge, obj_of_MergeBoundaries);
+        }
 
-    }
-    var1=0;var2=2;
-    for(i=0; i < MAX_THREADS/2; i++) {
-        pthread_join(tid[i], NULL);
-    }
-
-    for(i=0; i < MAX_THREADS/4; i++) {
-            MergeBoundaries * obj_of_MergeBoundaries = malloc(sizeof(* obj_of_MergeBoundaries));
-            obj_of_MergeBoundaries->left_bound = SIZE_OF_CHUNK * var1; var1+=4;
-            obj_of_MergeBoundaries->right_bound = SIZE_OF_CHUNK * var2;var2+=4;
-            obj_of_MergeBoundaries->size_of_chunk = SIZE_OF_CHUNK * 2;
-            pthread_create(&tid[i], 0, threadFunctionToMerge, obj_of_MergeBoundaries);
-
+        for(k=0; k < MAX_THREADS/var2; k++) {
+            pthread_join(tid[k], NULL);
+        }
+        var1++;
     }
 
-    for(i=0; i < MAX_THREADS/4; i++) {
-        pthread_join(tid[i], NULL);
-    }
-    MergeBoundaries * obj_of_MergeBoundaries = malloc(sizeof(* obj_of_MergeBoundaries));
-    obj_of_MergeBoundaries->left_bound = 0;
-    obj_of_MergeBoundaries->right_bound = SIZE_OF_CHUNK * 4;
-    obj_of_MergeBoundaries->size_of_chunk = SIZE_OF_CHUNK * 4;
-    pthread_create(&tid[0], 0, mergingOfResultsOfAllThreads, obj_of_MergeBoundaries);
-    pthread_join(tid[0], NULL);
 
     t = clock() - t;
 
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
 
     printf("\n\n------After  Sorting------\n\n");
-    print();
-    printf("Quick Sort Pthread took %f seconds to execute \n", time_taken);
+    //print();
+    printf("Merge Sort Pthread took %f seconds to execute \n", time_taken);
     free(integer_array);
 }
 
@@ -127,6 +122,29 @@ void initializeIntegerArray(){
     }
 }
 
+int adjustNoOfThreads(int value){
+    int answer=1,i;
+    for(i=0;i<20;i++){
+        if(pow(2,i)>=value){
+            answer=pow(2,i);
+            break;
+        }
+    }
+    return answer;
+}
+int getPowerOfTwo(int value){
+    int answer=0,i;
+    for(i=0;i<20;i++){
+        if(pow(2,i)>=value){
+            answer=pow(2,i)/value;
+            if(answer==1){
+                return i;
+            }
+            break;
+        }
+    }
+    return answer;
+}
 
 void * threadFunctionToSort(void * obj) {
     Bounds obj_of_Bounds = *((Bounds *) obj);

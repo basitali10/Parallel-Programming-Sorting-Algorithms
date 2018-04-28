@@ -1,14 +1,15 @@
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <time.h>
 #include<math.h>
-#define NO_OF_ITEMS 1000
-#define MAX_THREADS 8
-#define SIZE_OF_CHUNK (NO_OF_ITEMS/MAX_THREADS)
+#define NO_OF_ITEMS 10000
+int SIZE_OF_CHUNK=400;
+int MAX_THREADS=0;
 
 static int *integer_array; //our global integer array
-pthread_t tid[MAX_THREADS]; //maximum numbers of thread defined
 
 typedef struct {
     int end;
@@ -23,22 +24,27 @@ typedef struct  {
 void swap(int*, int, int); //function to swap two integer values
 void print();              //function to print our global array.
 void initializeIntegerArray(); //function to initialize array dynamically with random numbers.
+void bubbleSort(int*,int,int);
 int adjustNoOfThreads(int);
 int getPowerOfTwo(int);
-unsigned partition(int *, unsigned, unsigned, unsigned); //function for partition
-void quick_sort(int *, unsigned , unsigned ); //recursive quicksort function
-void * threadFunctionToSort(void *); //thread function to just sort a chunk defined by chunk's boundary.
+void * threadFunctionToBubbleSort(void *); //thread function to just sort a chunk defined by chunk's boundary.
 void * threadFunctionToMerge(void *); //thread function to merge two chunks.
+
 
 //MAIN FUNCTION
 int main(){
-    int j=0,i=0,purani=0,k=0,special_size_of_chunk=0;
+    int j=0,i=0,k=0,purani=0,special_size_of_chunk=0;
+    MAX_THREADS=ceil((double)NO_OF_ITEMS/(double)SIZE_OF_CHUNK);
+    MAX_THREADS=adjustNoOfThreads(MAX_THREADS);
     int powerOf2=getPowerOfTwo(MAX_THREADS);
+    pthread_t tid[MAX_THREADS]; //maximum numbers of thread defined
     initializeIntegerArray();
     printf("\n\n------Before Sorting------\n\n");
     //print();
     clock_t t;
     t = clock();
+    SIZE_OF_CHUNK=NO_OF_ITEMS/MAX_THREADS;
+    printf("\n\nNOTE : Size of Chunk is Modified to %d\n\n",SIZE_OF_CHUNK);
     //Sorting chunks seperately
     for(i=0; i < MAX_THREADS; i++) {
         Bounds * obj_of_Bounds = malloc(sizeof(* obj_of_Bounds));
@@ -47,7 +53,6 @@ int main(){
             obj_of_Bounds->end = NO_OF_ITEMS;
             special_size_of_chunk=NO_OF_ITEMS-purani;
             printf("\nSpecial size of chunk for last thread = %d\n",special_size_of_chunk);
-
         }
         else{
             obj_of_Bounds->start = SIZE_OF_CHUNK * (i+1) - SIZE_OF_CHUNK;
@@ -55,7 +60,7 @@ int main(){
             purani=obj_of_Bounds->end;
         }
         printf("\nThread no %d Bounds : %d --- %d \n",(i+1),obj_of_Bounds->start,obj_of_Bounds->end-1);
-        pthread_create(&tid[i], 0, threadFunctionToSort, obj_of_Bounds);
+        pthread_create(&tid[i], 0, threadFunctionToBubbleSort, obj_of_Bounds);
 
     }
     for(i=0; i < MAX_THREADS; i++) {
@@ -90,7 +95,7 @@ int main(){
 
     printf("\n\n------After  Sorting------\n\n");
     //print();
-    printf("Quick Sort Pthread took %f seconds to execute \n", time_taken);
+    printf("Bubble Sort Pthread Modified took %f seconds to execute \n", time_taken);
     free(integer_array);
 }
 
@@ -110,7 +115,6 @@ void print() {
     }
     printf("\n\n----------------INTEGER ARRAY PRINTED----------------\n");
 }
-
 void initializeIntegerArray(){
     int i;time_t t;
     integer_array = (int *) malloc(NO_OF_ITEMS*sizeof(int)); //DMA
@@ -142,51 +146,10 @@ int getPowerOfTwo(int value){
     }
     return answer;
 }
-unsigned partition(int *integer_array, unsigned first, unsigned last, unsigned pivot_index) {
-    if (pivot_index != first){
-        swap(integer_array, first, pivot_index);
-    }
-    pivot_index = first;
-    first++;
-    while (first <= last) {
-        if (integer_array[first] <= integer_array[pivot_index]){
-            first++;
-        }
-        else{
-            if (integer_array[last] > integer_array[pivot_index]){
-                last--;
-            }
-            else{
-                swap(integer_array, first, last);
-            }
-        }
 
-    }
-    if (last != pivot_index){
-        swap(integer_array, pivot_index, last);
-    }
-    return last;
-}
-
-void quick_sort(int *integer_array, unsigned first, unsigned last){
-    unsigned pivot;
-    if (first >= last){
-        return;
-    }
-    pivot = (first+last)/2; //middle element as pivot.
-    pivot = partition(integer_array, first, last, pivot);
-    if (first < pivot){
-        quick_sort(integer_array, first, pivot-1);
-    }
-    if (pivot < last){
-        quick_sort(integer_array, pivot+1, last);
-    }
-}
-
-void * threadFunctionToSort(void * obj) {
+void * threadFunctionToBubbleSort(void * obj) {
     Bounds obj_of_Bounds = *((Bounds *) obj);
-
-    quick_sort(integer_array, obj_of_Bounds.start, obj_of_Bounds.end-1);
+    bubbleSort(integer_array, obj_of_Bounds.start, obj_of_Bounds.end-1);
     free(obj);
     pthread_exit(0);
 }
@@ -223,4 +186,15 @@ void * threadFunctionToMerge(void * obj) {
     free(obj);
     free(temp);
     pthread_exit(0);
+}
+
+void bubbleSort(int* integer_array,int lower,int upper){
+    int i,j;
+    for (i = lower ; i < ( lower+upper - 1 ); i++){
+        for (j = lower ; j < (lower+upper - i); j++){
+            if (integer_array[j] > integer_array[j+1]){
+                swap(integer_array,j,j+1);
+            }
+        }
+    }
 }

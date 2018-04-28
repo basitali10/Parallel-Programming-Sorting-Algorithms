@@ -3,12 +3,14 @@
 #include <pthread.h>
 #include <time.h>
 #include<math.h>
-#define NO_OF_ITEMS 1000
-#define MAX_THREADS 8
-#define SIZE_OF_CHUNK (NO_OF_ITEMS/MAX_THREADS)
+
+
+#define NO_OF_ITEMS 10000
+int SIZE_OF_CHUNK=400;
+int MAX_THREADS=0;
+
 
 static int *integer_array; //our global integer array
-pthread_t tid[MAX_THREADS]; //maximum numbers of thread defined
 
 typedef struct {
     int end;
@@ -30,15 +32,21 @@ void quick_sort(int *, unsigned , unsigned ); //recursive quicksort function
 void * threadFunctionToSort(void *); //thread function to just sort a chunk defined by chunk's boundary.
 void * threadFunctionToMerge(void *); //thread function to merge two chunks.
 
+
 //MAIN FUNCTION
 int main(){
-    int j=0,i=0,purani=0,k=0,special_size_of_chunk=0;
+    int j=0,i=0,k=0,purani=0,special_size_of_chunk;
+    MAX_THREADS=ceil((double)NO_OF_ITEMS/(double)SIZE_OF_CHUNK);
+    MAX_THREADS=adjustNoOfThreads(MAX_THREADS);
     int powerOf2=getPowerOfTwo(MAX_THREADS);
+    pthread_t tid[MAX_THREADS]; //maximum numbers of thread defined
     initializeIntegerArray();
     printf("\n\n------Before Sorting------\n\n");
     //print();
     clock_t t;
     t = clock();
+    SIZE_OF_CHUNK=(NO_OF_ITEMS/MAX_THREADS);
+    printf("\n\nNOTE : Size of Chunk is Modified to %d\n\n",SIZE_OF_CHUNK);
     //Sorting chunks seperately
     for(i=0; i < MAX_THREADS; i++) {
         Bounds * obj_of_Bounds = malloc(sizeof(* obj_of_Bounds));
@@ -77,7 +85,6 @@ int main(){
                 pthread_create(&tid[j], 0, threadFunctionToMerge, obj_of_MergeBoundaries);
 
         }
-
         for(k=0; k < MAX_THREADS/var2; k++) {
             pthread_join(tid[k], NULL);
         }
@@ -90,7 +97,7 @@ int main(){
 
     printf("\n\n------After  Sorting------\n\n");
     //print();
-    printf("Quick Sort Pthread took %f seconds to execute \n", time_taken);
+    printf("Quick Sort Pthread Modified took %f seconds to execute \n", time_taken);
     free(integer_array);
 }
 
@@ -101,27 +108,9 @@ void swap(int* v, int a, int b) {
     v[a]=v[b];
     v[b]=temp;
 }
-
-void print() {
-    int i;
-    printf("\n----------------OUR INTEGER ARRAY----------------\n\n");
-    for (i = 0; i < NO_OF_ITEMS; i++) {
-        printf("%d\t", integer_array[i]);
-    }
-    printf("\n\n----------------INTEGER ARRAY PRINTED----------------\n");
-}
-
-void initializeIntegerArray(){
-    int i;time_t t;
-    integer_array = (int *) malloc(NO_OF_ITEMS*sizeof(int)); //DMA
-    srand((unsigned) time(&t)); //randomizing everytime
-    for (i = 0; i < NO_OF_ITEMS; i++) {
-        integer_array[i] = rand() % (1000 + 1 - 0) + 0; //Generating random numbers between 0-1000
-    }
-}
 int adjustNoOfThreads(int value){
     int answer=1,i;
-    for(i=0;i<20;i++){
+    for(i=0;i<50;i++){
         if(pow(2,i)>=value){
             answer=pow(2,i);
             break;
@@ -141,6 +130,23 @@ int getPowerOfTwo(int value){
         }
     }
     return answer;
+}
+void print() {
+    int i;
+    printf("\n----------------OUR INTEGER ARRAY----------------\n\n");
+    for (i = 0; i < NO_OF_ITEMS; i++) {
+        printf("%d\t", integer_array[i]);
+    }
+    printf("\n\n----------------INTEGER ARRAY PRINTED----------------\n");
+}
+
+void initializeIntegerArray(){
+    int i;time_t t;
+    integer_array = (int *) malloc(NO_OF_ITEMS*sizeof(int)); //DMA
+    srand((unsigned) time(&t)); //randomizing everytime
+    for (i = 0; i < NO_OF_ITEMS; i++) {
+        integer_array[i] = rand() % (1000 + 1 - 0) + 0; //Generating random numbers between 0-1000
+    }
 }
 unsigned partition(int *integer_array, unsigned first, unsigned last, unsigned pivot_index) {
     if (pivot_index != first){
@@ -187,6 +193,7 @@ void * threadFunctionToSort(void * obj) {
     Bounds obj_of_Bounds = *((Bounds *) obj);
 
     quick_sort(integer_array, obj_of_Bounds.start, obj_of_Bounds.end-1);
+
     free(obj);
     pthread_exit(0);
 }
