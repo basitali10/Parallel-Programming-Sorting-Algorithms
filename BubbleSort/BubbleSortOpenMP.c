@@ -4,7 +4,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include<omp.h>
-#define NO_OF_ITEMS 1000
+#define NO_OF_ITEMS 100000
 static int *integer_array;
 
 void swap(int*, int, int); //function to swap two integer values
@@ -15,7 +15,7 @@ int main(){
     clock_t t;int i,j;
     initializeIntegerArray();
     printf("\n\n------Before Sorting------\n\n");
-    print();
+    //print();
     t = clock();
     for(i=0;i<NO_OF_ITEMS;i++){
         int first=i%2;
@@ -29,7 +29,7 @@ int main(){
     t = clock() - t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
     printf("\n\n------After  Sorting------\n\n");
-    print();
+    //print();
     printf("Bubble Sort Open MP took %f seconds to sort the integer array. \n", time_taken);
     free(integer_array);
     return 0;

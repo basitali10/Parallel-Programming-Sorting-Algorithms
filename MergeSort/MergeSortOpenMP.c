@@ -19,7 +19,7 @@ int main(){
     int j=0,i=0;
     initializeIntegerArray();
     printf("\n\n------Before Sorting------\n\n");
-    print();
+    //print();
     clock_t t;
     t = clock();
     merge_sort(0,NO_OF_ITEMS-1);
@@ -28,8 +28,8 @@ int main(){
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
 
     printf("\n\n------After  Sorting------\n\n");
-    print();
-    printf("Merge Sort Sequential took %f seconds to execute \n", time_taken);
+    //print();
+    printf("Merge Sort OpenMp took %f seconds to execute \n", time_taken);
     free(integer_array);
 }
 
@@ -105,7 +105,7 @@ void merge_sort(int low, int high){
     // calculating mid point of array
     int mid = low + (high - low) / 2;
     if (low < high) {
-        #pragma omp parallel sections num_threads(8) //creating 8 threads
+        #pragma omp parallel sections
         {
         #pragma omp section
         {

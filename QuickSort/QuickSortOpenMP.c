@@ -23,7 +23,7 @@ int main(){
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
     printf("\n\n------After  Sorting------\n\n");
     //print();
-    printf("Quick Sort Sequential took %f seconds to sort the integer array. \n", time_taken);
+    printf("Quick Sort Open MP took %f seconds to sort the integer array. \n", time_taken);
     free(integer_array);
 }
 
@@ -82,7 +82,7 @@ void quick_sort(int *integer_array, unsigned first, unsigned last) {
     }
     pivot = (first+last)/2; //middle element as pivot.
     pivot = partition(integer_array, first, last, pivot);
-    #pragma omp parallel sections num_threads(8) //creating 8 threads
+    #pragma omp parallel sections
     {
         #pragma omp section
         {
