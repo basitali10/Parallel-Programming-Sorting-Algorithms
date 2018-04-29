@@ -3,12 +3,12 @@
 #include <pthread.h>
 #include <time.h>
 #include<math.h>
-#define NO_OF_ITEMS 1000
-#define MAX_THREADS 8
-#define SIZE_OF_CHUNK (NO_OF_ITEMS/MAX_THREADS)
+#define NO_OF_ITEMS 1024
+int MAX_THREADS=512;
+int SIZE_OF_CHUNK=0;
 
 static int *integer_array; //our global integer array
-pthread_t tid[MAX_THREADS]; //maximum numbers of thread defined
+
 
 typedef struct {
     int end;
@@ -33,11 +33,18 @@ void * threadFunctionToMerge(void *); //thread function to merge two chunks.
 //MAIN FUNCTION
 int main(){
     int j=0,i=0,purani=0,k=0,special_size_of_chunk=0;
+    SIZE_OF_CHUNK=ceil((double)NO_OF_ITEMS/(double)MAX_THREADS);
+    MAX_THREADS=adjustNoOfThreads(MAX_THREADS);
     int powerOf2=getPowerOfTwo(MAX_THREADS);
+    pthread_t tid[MAX_THREADS]; //maximum numbers of thread defined
     initializeIntegerArray();
     printf("\n\n------Before Sorting------\n\n");
     //print();
     clock_t t;
+    SIZE_OF_CHUNK=(NO_OF_ITEMS/MAX_THREADS);
+    printf("\n----------------------[INFO]----------------------\nNo of items are %d\n",NO_OF_ITEMS);
+    printf("\nSize of Chunk is Modified to %d\n",SIZE_OF_CHUNK);
+    printf("\nNo of threads modified to %d\n\n---------------------------------------------------\n",MAX_THREADS);
     t = clock();
     //Sorting chunks seperately
     for(i=0; i < MAX_THREADS; i++) {
@@ -92,6 +99,9 @@ int main(){
     //print();
     printf("Quick Sort Pthread took %f seconds to execute \n", time_taken);
     free(integer_array);
+    printf("\n----------------------[INFO]----------------------\nNo of items are %d\n",NO_OF_ITEMS);
+    printf("\nSize of Chunk is Modified to %d\n",SIZE_OF_CHUNK);
+    printf("\nNo of threads modified to %d\n\n---------------------------------------------------\n",MAX_THREADS);
 }
 
 
@@ -120,12 +130,32 @@ void initializeIntegerArray(){
     }
 }
 int adjustNoOfThreads(int value){
-    int answer=1,i;
-    for(i=0;i<20;i++){
+    int answer=1,i,j;
+    for(i=0;i<50;i++){
         if(pow(2,i)>=value){
             answer=pow(2,i);
-            break;
+            if(NO_OF_ITEMS%answer==0){
+                return answer;
+            }
+            else{
+                break;
+            }
+
         }
+    }
+    int maximum=0;
+    i=0;
+    while(maximum<NO_OF_ITEMS){
+        maximum=pow(2,i);
+        i++;
+    }
+
+    for(j=i;j>1;j--){
+        maximum=pow(2,j);
+        if(NO_OF_ITEMS%maximum==0){
+            return maximum;
+        }
+
     }
     return answer;
 }

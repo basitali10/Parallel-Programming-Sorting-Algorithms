@@ -5,8 +5,8 @@
 #include<math.h>
 
 
-#define NO_OF_ITEMS 10000
-int SIZE_OF_CHUNK=400;
+#define NO_OF_ITEMS 10000000
+int SIZE_OF_CHUNK=111;
 int MAX_THREADS=0;
 
 
@@ -41,12 +41,15 @@ int main(){
     int powerOf2=getPowerOfTwo(MAX_THREADS);
     pthread_t tid[MAX_THREADS]; //maximum numbers of thread defined
     initializeIntegerArray();
+
     printf("\n\n------Before Sorting------\n\n");
     //print();
     clock_t t;
+    printf("\n----------------------[INFO]----------------------\nNo of items are %d\n",NO_OF_ITEMS);
+    printf("\nSize of Chunk is Modified to %d\n",SIZE_OF_CHUNK);
+    printf("\nNo of threads modified to %d\n\n---------------------------------------------------\n",MAX_THREADS);
     t = clock();
-    SIZE_OF_CHUNK=(NO_OF_ITEMS/MAX_THREADS);
-    printf("\n\nNOTE : Size of Chunk is Modified to %d\n\n",SIZE_OF_CHUNK);
+
     //Sorting chunks seperately
     for(i=0; i < MAX_THREADS; i++) {
         Bounds * obj_of_Bounds = malloc(sizeof(* obj_of_Bounds));
@@ -99,6 +102,9 @@ int main(){
     //print();
     printf("Quick Sort Pthread Modified took %f seconds to execute \n", time_taken);
     free(integer_array);
+    printf("\n----------------------[INFO]----------------------\nNo of items are %d\n",NO_OF_ITEMS);
+    printf("\nSize of Chunk is Modified to %d\n",SIZE_OF_CHUNK);
+    printf("\nNo of threads modified to %d\n\n---------------------------------------------------\n",MAX_THREADS);
 }
 
 
@@ -108,13 +114,34 @@ void swap(int* v, int a, int b) {
     v[a]=v[b];
     v[b]=temp;
 }
+
 int adjustNoOfThreads(int value){
-    int answer=1,i;
+    int answer=1,i,j;
     for(i=0;i<50;i++){
         if(pow(2,i)>=value){
             answer=pow(2,i);
-            break;
+            if(NO_OF_ITEMS%answer==0){
+                return answer;
+            }
+            else{
+                break;
+            }
+
         }
+    }
+    int maximum=0;
+    i=0;
+    while(maximum<NO_OF_ITEMS){
+        maximum=pow(2,i);
+        i++;
+    }
+
+    for(j=i;j>1;j--){
+        maximum=pow(2,j);
+        if(NO_OF_ITEMS%maximum==0){
+            return maximum;
+        }
+
     }
     return answer;
 }
