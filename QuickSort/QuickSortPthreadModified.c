@@ -5,8 +5,8 @@
 #include<math.h>
 
 
-#define NO_OF_ITEMS 10000000
-int SIZE_OF_CHUNK=111;
+#define NO_OF_ITEMS 1001
+int SIZE_OF_CHUNK= 8;
 int MAX_THREADS=0;
 
 
@@ -39,12 +39,14 @@ int main(){
     MAX_THREADS=ceil((double)NO_OF_ITEMS/(double)SIZE_OF_CHUNK);
     MAX_THREADS=adjustNoOfThreads(MAX_THREADS);
     int powerOf2=getPowerOfTwo(MAX_THREADS);
+    printf("Max_thread=%d  powerof2=%d",MAX_THREADS,powerOf2);
     pthread_t tid[MAX_THREADS]; //maximum numbers of thread defined
     initializeIntegerArray();
 
     printf("\n\n------Before Sorting------\n\n");
     //print();
     clock_t t;
+    SIZE_OF_CHUNK=(NO_OF_ITEMS/MAX_THREADS);
     printf("\n----------------------[INFO]----------------------\nNo of items are %d\n",NO_OF_ITEMS);
     printf("\nSize of Chunk is Modified to %d\n",SIZE_OF_CHUNK);
     printf("\nNo of threads modified to %d\n\n---------------------------------------------------\n",MAX_THREADS);
@@ -99,7 +101,7 @@ int main(){
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
 
     printf("\n\n------After  Sorting------\n\n");
-    //print();
+    print();
     printf("Quick Sort Pthread Modified took %f seconds to execute \n", time_taken);
     free(integer_array);
     printf("\n----------------------[INFO]----------------------\nNo of items are %d\n",NO_OF_ITEMS);
@@ -124,6 +126,7 @@ int adjustNoOfThreads(int value){
                 return answer;
             }
             else{
+                printf("answer = %d",answer);
                 break;
             }
 
@@ -135,7 +138,7 @@ int adjustNoOfThreads(int value){
         maximum=pow(2,i);
         i++;
     }
-
+    printf("maximum = %d ",maximum);
     for(j=i;j>1;j--){
         maximum=pow(2,j);
         if(NO_OF_ITEMS%maximum==0){

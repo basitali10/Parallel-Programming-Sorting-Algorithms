@@ -5,8 +5,8 @@
 #include <pthread.h>
 #include <time.h>
 #include<math.h>
-#define NO_OF_ITEMS 10000
-int SIZE_OF_CHUNK=400;
+#define NO_OF_ITEMS 1001
+int SIZE_OF_CHUNK=7;
 int MAX_THREADS=0;
 
 static int *integer_array; //our global integer array
